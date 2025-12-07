@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { FcGoogle } from 'react-icons/fc'
 import { FaFacebookF } from 'react-icons/fa'
 import { IoIosArrowBack } from 'react-icons/io'
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../../config/firebase';
+
 function Login() {
 
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -40,6 +43,35 @@ function Login() {
       
     } catch (err: any) {
       setError(err.message || 'Pre-login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const token = await result.user.getIdToken();
+      
+      console.log('Firebase Token:', token);
+      
+      const res = await fetchData('customer/auth/socialites/firebase', 'POST', {
+        token: token,
+        provider: 'google'
+      });
+      
+      setSuccess('Google Login Successful!');
+      // Handle successful login (e.g., store token, navigate)
+      if (res.token) {
+        localStorage.setItem('token', res.token);
+        navigate('/'); // Or wherever you want to redirect
+      }
+      
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Google login failed');
     } finally {
       setLoading(false);
     }
@@ -84,7 +116,11 @@ function Login() {
         <div className="mt-8 flex flex-col items-center">
           <p className="mb-6 text-sm text-gray-500">Or Login with social account</p>
           <div className="flex gap-4">
-            <button className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md border border-gray-100 hover:bg-gray-50">
+            <button 
+              onClick={handleGoogleLogin}
+              type="button"
+              className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md border border-gray-100 hover:bg-gray-50"
+            >
               <FcGoogle size={24} />
             </button>
             <button className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md border border-gray-100 hover:bg-gray-50 text-[#1877F2]">

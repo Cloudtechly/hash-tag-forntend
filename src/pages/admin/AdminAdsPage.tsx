@@ -30,7 +30,7 @@ interface ActionMenuProps {
 
 
 
-export const ActionMenu = ({ adId }: ActionMenuProps) => {
+ const ActionMenu = ({ adId }: ActionMenuProps) => {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -385,18 +385,59 @@ export default function AdminAdsPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [lastPage, setLastPage] = useState(1);
+
   const fetchAds = async () => {
-    const res = await fetchData<any>("admin/ads" + (searchQuery ? `?filter[name]=${encodeURIComponent(searchQuery)}` : "")) as any;
-    const data = res.data || [];  
+    let url = `admin/ads?page=${page}&per_page=${perPage}`;
+    if (searchQuery) {
+      url += `&filter[name]=${encodeURIComponent(searchQuery)}`;
+    }
+    const res = await fetchData<any>(url) as any;
+    let data: Ad[] = [];
+    let meta: any = {};
+    
+    if (Array.isArray(res)) {
+      data = res;
+    } else if (Array.isArray(res.data)) {
+      data = res.data;
+      meta = res.meta;
+    } else if (res.body && Array.isArray(res.body.data)) {
+      data = res.body.data;
+      meta = res.body.meta;
+    } else if (Array.isArray(res.body)) {
+      data = res.body;
+    }
+    
     setAds(data);
+    if (meta) {
+      setTotal(meta.total || 0);
+      setLastPage(meta.last_page || 1);
+    }
   };
 
   useEffect(() => {
     fetchAds();
-  }, []);
+  }, [page, perPage]);
+
   function handleSearch() {
+    setPage(1);
     fetchAds();
   }
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= lastPage) {
+      setPage(newPage);
+    }
+  };
+
+  const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPerPage(Number(e.target.value));
+    setPage(1);
+  };
 
   return (
     <div className="min-h-screen p-0" >
@@ -416,6 +457,14 @@ export default function AdminAdsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Ads Table */}
           <AdminTable searchQuery={searchQuery} setSearchQuery={setSearchQuery} handleSearch={handleSearch} setAddModalOpen={setAddModalOpen} title={ads}
+            pagination={{
+              page,
+              perPage,
+              total,
+              lastPage,
+              onPageChange: handlePageChange,
+              onPerPageChange: handlePerPageChange,
+            }}
             columns={[{
               key: 'id', label: 'ID'
             }, {

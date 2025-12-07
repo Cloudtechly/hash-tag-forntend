@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   ChevronLeftIcon,
@@ -19,6 +18,7 @@ import {
  
 } from "@heroicons/react/24/outline";
 import fetchData from "../../Api/FetchApi";
+import AdminTable from "../../components/admin/AdminTable";
 
 interface Category {
   id: number;
@@ -117,6 +117,74 @@ function CollapsibleSidebar({ sidebarOpen, setSidebarOpen }: { sidebarOpen: bool
 export default function AdminProductsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
+  
+  // Pagination & Search State
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [lastPage, setLastPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    is_special: false,
+    special_starts_at: '',
+    special_ends_at: ''
+  });
+
+  const handleViewProduct = async (productId: number) => {
+    try {
+      const res = await fetchData(`admin/products/${productId}`);
+      const productData = res.data || res;
+      setViewingProduct(productData);
+      setViewModalOpen(true);
+    } catch (error) {
+      console.error("Failed to fetch product details", error);
+      alert("Failed to fetch product details");
+    }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      description: product.description || '',
+      price: product.price.toString(),
+      is_special: product.is_special,
+      special_starts_at: product.special_starts_at || '',
+      special_ends_at: product.special_ends_at || ''
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+
+    try {
+      await fetchData(`admin/products/${editingProduct.id}`, 'PUT', {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        is_special: formData.is_special,
+        special_starts_at: formData.special_starts_at,
+        special_ends_at: formData.special_ends_at
+      });
+      alert('Product updated successfully');
+      setEditModalOpen(false);
+      fetchProducts();
+    } catch (error) {
+      console.error(error);
+      alert('Failed to update product');
+    }
+  };
+
 const ActionMenu = ({ productId }: ActionMenuProps) => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -145,12 +213,21 @@ const ActionMenu = ({ productId }: ActionMenuProps) => {
         <div className="absolute right-0 top-10 z-20 min-w-[180px] bg-white rounded-xl shadow-lg border border-[#EAECF0] py-2 px-0 text-left animate-fade-in" style={{boxShadow:'0 4px 24px 0 rgba(16,24,40,0.08)'}}>
           <ul className="space-y-1">
             <li>
-              <button className="flex items-center w-full px-4 py-2 text-[#101828] text-sm hover:bg-[#F9FAFB] gap-2">
+              <button 
+                className="flex items-center w-full px-4 py-2 text-[#101828] text-sm hover:bg-[#F9FAFB] gap-2"
+                onClick={() => handleViewProduct(productId)}
+              >
                 <EyeIcon className="w-5 h-5 mr-2" />View Details
               </button>
             </li>
             <li>
-              <button className="flex items-center w-full px-4 py-2 text-[#101828] text-sm hover:bg-[#F9FAFB] gap-2">
+              <button 
+                className="flex items-center w-full px-4 py-2 text-[#101828] text-sm hover:bg-[#F9FAFB] gap-2"
+                onClick={() => {
+                  const product = products.find(p => p.id === productId);
+                  if (product) handleEditProduct(product);
+                }}
+              >
                 <PencilIcon className="w-5 h-5 mr-2" />Edit
               </button>
             </li>
@@ -159,16 +236,7 @@ const ActionMenu = ({ productId }: ActionMenuProps) => {
                 <CheckCircleIcon className="w-5 h-5 mr-2" />Approve Product
               </button>
             </li>
-            <li>
-              <button className="flex items-center w-full px-4 py-2 text-[#101828] text-sm hover:bg-[#F9FAFB] gap-2">
-                <ArrowTrendingUpIcon className="w-5 h-5 mr-2" />Follow-up
-              </button>
-            </li>
-            <li>
-              <button className="flex items-center w-full px-4 py-2 text-[#101828] text-sm hover:bg-[#F9FAFB] gap-2">
-                <ArrowDownTrayIcon className="w-5 h-5 mr-2" />Download
-              </button>
-            </li>
+            
             <li>
               <button className="flex items-center w-full px-4 py-2 text-[#F04438] text-sm hover:bg-[#F9FAFB] gap-2">
                 <TrashIcon className="w-5 h-5 mr-2 text-[#F04438]" />Delete
@@ -181,9 +249,56 @@ const ActionMenu = ({ productId }: ActionMenuProps) => {
   );
 };
     const fetchProducts = async () => {
-         const res = await fetchData<any[]>('admin/products') as any;
-         setProducts(res.data as any[])
-       };
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        per_page: perPage.toString(),
+        search: searchQuery,
+      });
+      
+      try {
+        const res = await fetchData<any>(`admin/products?${queryParams.toString()}`);
+        
+        let data: Product[] = [];
+        let meta: any = {};
+
+        if (Array.isArray(res)) {
+          data = res;
+        } else if (Array.isArray(res.data)) {
+          data = res.data;
+          meta = res.meta;
+        } else if (res.body && Array.isArray(res.body.data)) {
+          data = res.body.data;
+          meta = res.body.meta;
+        } else if (Array.isArray(res.body)) {
+          data = res.body;
+        }
+
+        setProducts(data);
+        if (meta) {
+          setTotal(meta.total || 0);
+          setLastPage(meta.last_page || 1);
+        }
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      }
+    };
+
+    const handlePageChange = (newPage: number) => {
+      if (newPage >= 1 && newPage <= lastPage) {
+        setPage(newPage);
+      }
+    };
+  
+    const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setPerPage(Number(e.target.value));
+      setPage(1);
+    };
+    
+    const handleSearch = () => {
+      setPage(1);
+      fetchProducts();
+    };
+
 async function approveProduct(productId: number) {
   try {
     await fetchData(`admin/products/${productId}/approve`, 'POST');
@@ -198,7 +313,7 @@ async function approveProduct(productId: number) {
   useEffect( () => {
    
        fetchProducts();
-  }, []);
+  }, [page, perPage]);
 
   return (
     <div className="min-h-screen  p-0 " dir="ltr">
@@ -218,138 +333,233 @@ async function approveProduct(productId: number) {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Products Table */}
           <main className={`${sidebarOpen ? 'lg:col-span-3' : 'lg:col-span-4'} space-y-6`}>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className="relative w-72">
-                  <input type="text" placeholder="Search for products..." className="flex h-9 w-full rounded-md border border-[#D0D5DD] bg-transparent pl-10 pr-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-[#98A2B3] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-left" />
-                  <MagnifyingGlassIcon className="w-4 h-4 text-[#98A2B3] absolute right-3 top-1/2 -translate-y-1/2" />
-                </div>
-               
-                    <button
-                onClick={()=>
-               setSidebarOpen((v) => true)
-                }
-                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2] disabled:pointer-events-none disabled:opacity-50 border border-[#D0D5DD] bg-transparent shadow-sm hover:bg-[#F2F4F7] hover:text-[#1976D2] h-9 px-4 py-2">
-                  Search
-                </button>
-                {sidebarOpen ? null : (
-                 <button
-                onClick={()=>
-               setSidebarOpen((v) => true)
-                }
-                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2] disabled:pointer-events-none disabled:opacity-50 border border-[#D0D5DD] bg-transparent shadow-sm hover:bg-[#F2F4F7] hover:text-[#1976D2] h-9 px-4 py-2">
-                  Advanced Search
-                </button>
-                )}
-              </div>
-            
-            </div>
-            <div className="bg-white rounded-xl border border-[#EAECF0] shadow-soft">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border-b border-[#EAECF0]">
-                <div className="text-sm text-[#667085]">Total products: <span className="font-semibold text-[#101828]">{products.length}</span></div>
-                <div className="flex items-center gap-2">
-                  <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2] disabled:pointer-events-none disabled:opacity-50 border border-[#D0D5DD] bg-transparent shadow-sm hover:bg-[#F2F4F7] hover:text-[#1976D2] h-8 rounded-md px-3 text-xs">
-                    <ArrowDownTrayIcon className="w-4 h-4 mr-2" />Export
-                  </button>
-                  <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2] disabled:pointer-events-none disabled:opacity-50 border border-[#D0D5DD] bg-transparent shadow-sm hover:bg-[#F2F4F7] hover:text-[#1976D2] h-8 rounded-md px-3 text-xs">
-                    <PrinterIcon className="w-4 h-4 mr-2" />Print
-                  </button>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full caption-bottom text-sm ltr text-[#344054]">
-                  <thead className="bg-[#F9FAFB]">
-                    <tr className="border-b border-[#EAECF0]">
-                      <th className="h-10 px-2 align-middle font-medium text-[#98A2B3] w-12 text-center">
-                        <input type="checkbox" className="h-4 w-4 rounded-sm border border-[#1976D2] shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2]" />
-                      </th>
-                      <th className="h-10 px-2 align-middle font-medium text-[#98A2B3] text-left">
-                        <div className="flex items-center gap-2">
-                          Product Name
-                          
-                        </div>
-                      </th>
-                      <th className="h-10 px-2 align-middle font-medium text-[#98A2B3] text-left">Category</th>
-                      <th className="h-10 px-2 align-middle font-medium text-[#98A2B3] text-left">Price</th>
-                      <th className="h-10 px-2 align-middle font-medium text-[#98A2B3] text-left">
-                        <div className="flex items-center gap-2">
-                          Date
-                          <ArrowDownIcon className="w-4 h-4" />
-                        </div>
-                      </th>
-                      <th className="h-10 px-2 align-middle font-medium text-[#98A2B3] text-left">
-                        <div className="flex items-center gap-2">
-                          Status
-                       
-                        </div>
-                      </th>
-                      <th className="h-10 px-2 align-middle font-medium text-[#98A2B3] text-center w-12">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products?.map((product) => (
-                      <tr key={product.id} className="border-b border-[#EAECF0] hover:bg-[#F9FAFB]">
-                        <td className="p-2 align-middle text-center">
-                          <input type="checkbox" className="h-4 w-4 rounded-sm border border-[#1976D2] shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2]" />
-                        </td>
-                        <td className="p-2 align-middle font-medium text-[#101828] text-left">{product.name}</td>
-                        <td className="p-2 align-middle text-left max-w-xs truncate">{product.category.name}</td>
-                        <td className="p-2 align-middle text-left text-sm text-[#667085]">{product.price}</td>
-                        <td className="p-2 align-middle text-left text-sm">{new Date(product.created_at).toLocaleDateString()}</td>
-                        <td className="p-2 align-middle text-left">
-                          <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none border-transparent shadow ${
-                    product.status === 'pending' ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'
-                }`}> 
-                            {product.status}
-                          </span>
-                        </td>
-                        <td className="p-2 align-middle text-center">
-                          <ActionMenu productId={product.id} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4">
-                <div className="text-sm text-[#667085]">
-                  Showing <span className="font-semibold text-[#101828]">1</span> to <span className="font-semibold text-[#101828]">{products.length}</span> of <span className="font-semibold text-[#101828]">{products.length}</span> products
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="pageSize" className="text-sm text-[#667085]">Rows per page:</label>
-                    <select id="pageSize" className="px-3 py-1 border border-[#EAECF0] rounded-md bg-white text-[#101828] text-sm">
-                      <option value="10" selected>10</option>
-                      <option value="25">25</option>
-                      <option value="50">50</option>
-                    </select>
-                  </div>
-                  <nav role="navigation" aria-label="pagination" className="mx-auto flex w-full justify-center">
-                    <ul className="flex flex-row items-center gap-1">
-                      <li>
-                        <a className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2] disabled:pointer-events-none disabled:opacity-50 border border-[#EAECF0] bg-transparent shadow-sm hover:bg-[#F2F4F7] hover:text-[#1976D2] h-9 px-4 py-2 gap-1 pr-2.5" aria-label="Go to previous page">
-                          <ChevronLeftIcon className="h-4 w-4" />
-                          <span>Previous</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a aria-current="page" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2] disabled:pointer-events-none disabled:opacity-50 border border-[#D0D5DD] bg-transparent shadow-sm hover:bg-[#F2F4F7] hover:text-[#1976D2] h-9 w-9 cursor-pointer">1</a>
-                      </li>
-                      <li>
-                        <a className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1976D2] disabled:pointer-events-none disabled:opacity-50 border border-[#EAECF0] bg-transparent shadow-sm hover:bg-[#F2F4F7] hover:text-[#1976D2] h-9 px-4 py-2 gap-1 pl-2.5" aria-label="Go to next page">
-                          <span>Next</span>
-                          <ChevronRightIcon className="h-4 w-4" />
-                        </a>
-                      </li>
-                    </ul>
-                  </nav>
-                </div>
-              </div>
-            </div>
+          <AdminTable 
+            searchQuery={searchQuery} 
+            setSearchQuery={setSearchQuery} 
+            handleSearch={handleSearch} 
+            setAddModalOpen={() => {}} 
+            title={products}
+            pagination={{
+                page,
+                perPage,
+                total,
+                lastPage,
+                onPageChange: handlePageChange,
+                onPerPageChange: handlePerPageChange,
+            }}
+            columns={[{
+              key: 'id', label: 'ID'
+            }, {
+              key: 'name', label: 'Name'
+            }, {
+              key: 'category', label: 'Category', render: (product: Product) => product.category ? product.category.name : 'N/A'
+            }, 
+            {
+              key : 'description', label : 'Description', render: (product: Product) => product.description ? product.description : 'N/A'
+
+            },
+            {
+              key: 'price', label: 'Price', render: (product: Product) => `$${product.price.toFixed(2)}`
+            }, {
+              key: 'status', label: 'Status', render: (product: Product) => (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  product.status === 'approved' ? 'bg-green-100 text-green-800' :
+                  product.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  product.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                </span>
+              )
+            }, {
+              key: 'created_at', label: 'Created At', render: (product: Product) => new Date(product.created_at).toLocaleDateString()
+            }, {
+              key: 'actions', label: 'Actions', render: (product: Product) => <ActionMenu productId={product.id} />
+            }]}
+          />
+
           </main>
           {sidebarOpen && <CollapsibleSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />}
         </div>
       </div>
+
+      {/* Edit Product Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Edit Product</h2>
+              <button onClick={() => setEditModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateProduct} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                <input
+                  type="number"
+                  required
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="is_special"
+                  checked={formData.is_special}
+                  onChange={(e) => setFormData({ ...formData, is_special: e.target.checked })}
+                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="is_special" className="text-sm font-medium text-gray-700">Is Special</label>
+              </div>
+
+              {formData.is_special && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Special Starts At</label>
+                    <input
+                      type="datetime-local"
+                      value={formData.special_starts_at}
+                      onChange={(e) => setFormData({ ...formData, special_starts_at: e.target.value })}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Special Ends At</label>
+                    <input
+                      type="datetime-local"
+                      value={formData.special_ends_at}
+                      onChange={(e) => setFormData({ ...formData, special_ends_at: e.target.value })}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setEditModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#1976D2] rounded-md hover:bg-[#1565C0]"
+                >
+                  Update Product
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Product Modal */}
+      {viewModalOpen && viewingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Product Details</h2>
+              <button onClick={() => setViewModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500">ID</label>
+                <p className="text-gray-900">{viewingProduct.id}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Name</label>
+                <p className="text-gray-900">{viewingProduct.name}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Description</label>
+                <p className="text-gray-900">{viewingProduct.description || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Price</label>
+                <p className="text-gray-900">${viewingProduct.price}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Category</label>
+                <p className="text-gray-900">{viewingProduct.category?.name || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Status</label>
+                <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium ${
+                  viewingProduct.status === 'approved' ? 'bg-green-100 text-green-800' :
+                  viewingProduct.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {viewingProduct.status}
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Created At</label>
+                <p className="text-gray-900">{new Date(viewingProduct.created_at).toLocaleString()}</p>
+              </div>
+              
+              {viewingProduct.is_special && (
+                <div className="bg-blue-50 p-3 rounded-md">
+                  <p className="text-sm font-medium text-blue-800 mb-2">Special Offer Details</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-blue-600">Starts</label>
+                      <p className="text-sm text-blue-900">{viewingProduct.special_starts_at ? new Date(viewingProduct.special_starts_at).toLocaleString() : 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-blue-600">Ends</label>
+                      <p className="text-sm text-blue-900">{viewingProduct.special_ends_at ? new Date(viewingProduct.special_ends_at).toLocaleString() : 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

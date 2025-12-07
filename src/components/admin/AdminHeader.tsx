@@ -192,7 +192,13 @@ const AdminHeader: React.FC<{ sidebarOpen: boolean; setSidebarOpen: (arg: boolea
                   </Link>
                 </li>
               </ul>
-              <div className="p-2">
+              <div className="p-2" onClick={()=>{
+                // Add sign out logic here
+                localStorage.clear();
+                window.location.href = '/admin/login';
+              }
+
+              }>
                 <button className="flex w-full items-center gap-3.5 px-4 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-red-50 hover:text-red-600 transition-colors">
                   <FiLogOut className="text-lg" />
                   Sign out

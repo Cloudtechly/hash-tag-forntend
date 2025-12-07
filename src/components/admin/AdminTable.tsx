@@ -12,7 +12,7 @@ import {
 
 
 } from "@heroicons/react/24/outline";
-import { ActionMenu } from "../../pages/admin/AdminAdsPage";
+
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -33,12 +33,13 @@ interface PaginationProps {
   onPerPageChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
-function AdminTable({ searchQuery, setSearchQuery, handleSearch, setAddModalOpen, title, columns, pagination, loading, error }: {
+function AdminTable({ searchQuery, setSearchQuery, handleSearch, setAddModalOpen, title, total, columns, pagination, loading, error }: {
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   handleSearch: () => void;
   setAddModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   title: any[];
+  total?: number;
   columns: Column[];
   pagination?: PaginationProps;
   loading?: boolean;
@@ -101,7 +102,7 @@ function AdminTable({ searchQuery, setSearchQuery, handleSearch, setAddModalOpen
     </div>
     <div className="bg-white rounded-xl border border-[#EAECF0] shadow-soft">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border-b border-[#EAECF0]">
-        <div className="text-sm text-[#667085]">Total title: <span className="font-semibold text-[#101828]">{title.length}</span></div>
+        <div className="text-sm text-[#667085]">Total: <span className="font-semibold text-[#101828]">{total}</span></div>
         <div className="flex items-center gap-2">
           <div className="relative" ref={exportRef}>
             <button
@@ -172,15 +173,16 @@ function AdminTable({ searchQuery, setSearchQuery, handleSearch, setAddModalOpen
       {pagination && (
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4">
           <div className="text-sm text-[#667085]">
-            Showing <span className="font-semibold text-[#101828]">{(pagination.page - 1) * pagination.perPage + 1}</span> to <span className="font-semibold text-[#101828]">{(pagination.page - 1) * pagination.perPage + title.length}</span> of <span className="font-semibold text-[#101828]">{pagination.total}</span> customers
+            Showing <span className="font-semibold text-[#101828]">{pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.perPage + 1}</span> to <span className="font-semibold text-[#101828]">{Math.min((pagination.page - 1) * pagination.perPage + title.length, pagination.total)}</span> of <span className="font-semibold text-[#101828]">{pagination.total}</span> customers
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <label htmlFor="pageSize" className="text-sm text-[#667085]">Rows per page:</label>
               <select id="pageSize" className="px-3 py-1 border border-[#EAECF0] rounded-md bg-white text-[#101828] text-sm" value={pagination.perPage} onChange={pagination.onPerPageChange}>
-                <option value="1">1</option>
+                <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
+                <option value="100">100</option>
               </select>
             </div>
             <nav role="navigation" aria-label="pagination" className="mx-auto flex w-full justify-center">
