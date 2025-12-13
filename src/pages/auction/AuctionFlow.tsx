@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import AuctionLoadingPage from './AuctionLoadingPage';
 import AuctionInfoPage from './AuctionInfoPage';
 import AuctionTermsPage from './AuctionTermsPage';
+import AuctionTradingLicenseUploadPage from './AuctionTradingLicenseUploadPage';
 import AuctionVerificationPage from './AuctionVerificationPage';
 import AuctionAllSetPage from './AuctionAllSetPage';
 
@@ -23,11 +24,26 @@ const AuctionFlow: React.FC = () => {
         }
     }, [location, navigate]);
 
+    // Track document selection for branching
+    const [docType, setDocType] = useState<string>('Personal verification');
+
     return (
         <Routes>
             <Route path="/" element={<AuctionLoadingPage />} />
             <Route path="/info" element={<AuctionInfoPage onNext={() => navigate('/auction/terms')} />} />
-            <Route path="/terms" element={<AuctionTermsPage onNext={() => navigate('/auction/verification')} />} />
+            <Route path="/terms" element={
+                <AuctionTermsPage
+                    onNext={(selected) => {
+                        setDocType(selected);
+                        if (selected === 'Trading license') {
+                            navigate('/auction/trading-license-upload');
+                        } else {
+                            navigate('/auction/verification');
+                        }
+                    }}
+                />
+            } />
+            <Route path="/trading-license-upload" element={<AuctionTradingLicenseUploadPage onNext={() => navigate('/auction/verification')} />} />
             <Route path="/verification" element={<AuctionVerificationPage onNext={() => navigate('/auction/all-set')} />} />
             <Route path="/all-set" element={<AuctionAllSetPage />} />
         </Routes>

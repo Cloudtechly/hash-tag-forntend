@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 import {
   IoCarSportOutline,
   IoGameControllerOutline,
@@ -6,9 +7,10 @@ import {
   IoDesktopOutline,
 } from 'react-icons/io5'
 import { PiLamp, PiTShirt } from 'react-icons/pi'
-import fetchData from '../../Api/FetchApi'
+import fetchData, { url } from '../../Api/FetchApi'
 
 export default function CategoryIcons() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -39,9 +41,13 @@ export default function CategoryIcons() {
       <div className="max-w-7xl mx-auto flex justify-around overflow-x-auto">
         {error && <div className="text-red-500">{error}</div>}
         {categories.map((cat) => (
-          <div key={cat.id || cat.name} className="flex flex-col items-center gap-2 mx-2">
+          <div
+            key={cat.id || cat.name}
+            className="flex flex-col items-center gap-2 mx-2 cursor-pointer"
+            onClick={() => navigate(`/CategoryProductsPage/${cat.id}`)}
+          >
             <div className="w-16 h-16 bg-[#E46A4B] rounded-2xl flex items-center justify-center text-white text-3xl">
-              {iconMap[cat.name] || <IoCarSportOutline />}
+              {iconMap[cat.name] || <img src={url+cat.image_url} alt={cat.name} className="w-8 h-8" />}
             </div>
             <span className="text-sm text-gray-600">{cat.name}</span>
           </div>

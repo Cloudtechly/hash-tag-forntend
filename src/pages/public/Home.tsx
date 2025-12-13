@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import fetchData from '../../Api/FetchApi';
 import Header from '../../components/home/Header'
@@ -8,8 +9,11 @@ import SpecialOffers from '../../components/home/SpecialOffers'
 import InterestsProducts from '../../components/home/InterestsProducts'
 import BottomNav from '../../components/home/BottomNav'
 import Sidebar from '../../components/sidebar/Sidebar';
+import { useTranslation } from 'react-i18next';
+import '../../config/i18n';
 
 export default function Home() {
+  const { t } = useTranslation();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userError, setUserError] = useState<string | null>(null);
@@ -20,7 +24,7 @@ export default function Home() {
         const res = await fetchData<any>('customer/auth/me');
         setUser(res);
       } catch (err: any) {
-        setUserError(err.message || 'Failed to fetch user');
+        setUserError(err.message || t('fetch_user_error', 'Failed to fetch user'));
       }
     };
     fetchUser();
@@ -35,7 +39,6 @@ export default function Home() {
       <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} />
       <div className={`flex flex-col min-h-screen pb-24 transition-transform duration-300 ${isSidebarOpen ? 'transform translate-x-20' : ''}`}>
         {/* Show user info at the top */}
-      
         <Header onMenuClick={toggleSidebar} />
         <SearchBar />
         <CategoryIcons />

@@ -35,31 +35,31 @@ const StatisticsChart: React.FC = () => {
   const [timeframe, setTimeframe] = useState('Monthly');
 
   return (
-    <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default  sm:px-7.5">
       <div className="flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap">
         <div className="flex w-full flex-wrap gap-3 sm:gap-5">
-          <h5 className="text-xl font-bold text-black dark:text-white">
+          <h5 className="text-xl font-bold text-black ">
             Statistics
           </h5>
           <p className="text-sm text-gray-500">Target you've set for each month</p>
         </div>
         <div className="flex w-full max-w-45 justify-end">
-          <div className="inline-flex items-center rounded-md bg-whiter p-1.5 dark:bg-meta-4">
+          <div className="inline-flex items-center rounded-md bg-whiter p-1.5 ">
             <button
               onClick={() => setTimeframe('Monthly')}
-              className={`rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark ${timeframe === 'Monthly' && 'bg-white shadow-card'}`}
+              className={`rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card   ${timeframe === 'Monthly' && 'bg-white shadow-card'}`}
             >
               Monthly
             </button>
             <button
               onClick={() => setTimeframe('Quarterly')}
-              className={`rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark ${timeframe === 'Quarterly' && 'bg-white shadow-card'}`}
+              className={`rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card   ${timeframe === 'Quarterly' && 'bg-white shadow-card'}`}
             >
               Quarterly
             </button>
             <button
               onClick={() => setTimeframe('Annually')}
-              className={`rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card dark:text-white dark:hover:bg-boxdark ${timeframe === 'Annually' && 'bg-white shadow-card'}`}
+              className={`rounded py-1 px-3 text-xs font-medium text-black hover:bg-white hover:shadow-card   ${timeframe === 'Annually' && 'bg-white shadow-card'}`}
             >
               Annually
             </button>

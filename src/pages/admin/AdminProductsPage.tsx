@@ -15,7 +15,7 @@ import {
   CheckCircleIcon,
   ArrowTrendingUpIcon,
   TrashIcon,
- 
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import fetchData from "../../Api/FetchApi";
 import AdminTable from "../../components/admin/AdminTable";
@@ -36,6 +36,21 @@ interface Product {
   special_ends_at: string | null;
   category: Category;
   created_at: string;
+  images?: Array<{
+    id: number;
+    url: string;
+    purpose: string;
+    type: string;
+  }>;
+  specifications?: Array<{
+    value: string;
+    specification_key: {
+      id: number;
+      name: string;
+      type: string;
+    };
+    specification_option: any;
+  }>;
 }
 
 
@@ -141,6 +156,7 @@ export default function AdminProductsPage() {
   const handleViewProduct = async (productId: number) => {
     try {
       const res = await fetchData(`admin/products/${productId}`);
+      // API response: { data: { ...product } }
       const productData = res.data || res;
       setViewingProduct(productData);
       setViewModalOpen(true);
@@ -236,6 +252,11 @@ const ActionMenu = ({ productId }: ActionMenuProps) => {
                 <CheckCircleIcon className="w-5 h-5 mr-2" />Approve Product
               </button>
             </li>
+            <li>
+              <button className="flex items-center w-full px-4 py-2 text-[#F04438] text-sm hover:bg-[#F9FAFB] gap-2" onClick={() => rejectProduct(productId)}>
+                <XCircleIcon className="w-5 h-5 mr-2" />Reject Product
+              </button>
+            </li>
             
             <li>
               <button className="flex items-center w-full px-4 py-2 text-[#F04438] text-sm hover:bg-[#F9FAFB] gap-2">
@@ -308,6 +329,16 @@ async function approveProduct(productId: number) {
     alert('Product approved successfully!');
   } catch (error) {
     alert('Failed to approve product.');
+  }
+}
+
+async function rejectProduct(productId: number) {
+  try {
+    await fetchData(`admin/products/${productId}/reject`, 'POST');
+    fetchProducts();
+    alert('Product rejected successfully!');
+  } catch (error) {
+    alert('Failed to reject product.');
   }
 }
   useEffect( () => {
@@ -495,7 +526,6 @@ async function approveProduct(productId: number) {
                 </svg>
               </button>
             </div>
-            
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-500">ID</label>
@@ -531,7 +561,28 @@ async function approveProduct(productId: number) {
                 <label className="block text-sm font-medium text-gray-500">Created At</label>
                 <p className="text-gray-900">{new Date(viewingProduct.created_at).toLocaleString()}</p>
               </div>
-              
+              {viewingProduct.images && viewingProduct.images.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Images</label>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingProduct.images.map((img: any) => (
+                      <img key={img.id} src={img.url} alt="Product" className="w-20 h-20 object-cover rounded border" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {viewingProduct.specifications && viewingProduct.specifications.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Specifications</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {viewingProduct.specifications.map((spec: any, idx: number) => (
+                      <div key={idx} className="text-xs bg-gray-50 rounded p-2">
+                        <span className="font-semibold text-gray-700">{spec.specification_key?.name || 'Key'}:</span> {spec.value}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {viewingProduct.is_special && (
                 <div className="bg-blue-50 p-3 rounded-md">
                   <p className="text-sm font-medium text-blue-800 mb-2">Special Offer Details</p>
@@ -548,7 +599,6 @@ async function approveProduct(productId: number) {
                 </div>
               )}
             </div>
-
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setViewModalOpen(false)}

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   EllipsisVerticalIcon,
@@ -23,6 +22,20 @@ interface Ad {
   created_at?: string;
   updated_at?: string;
 }
+
+const uploadImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append('files[]', file);
+  formData.append('purpose', 'adimage');
+  
+  const data = await fetchData('admin/assets/uploads', 'POST', formData) as any;
+  
+  if (data?.assets && Array.isArray(data.assets) && data.assets.length > 0) {
+    return data.assets[0].id;
+  }
+  
+  return null;
+};
 
 interface ActionMenuProps {
   adId: number;
@@ -186,7 +199,12 @@ interface ActionMenuProps {
       }
       setLoading(true);
       try {
-        const payload = {
+        let imageAssetId = null;
+        if (form.image) {
+          imageAssetId = await uploadImage(form.image);
+        }
+
+        const payload: any = {
           name: form.name,
           target_url: form.target_url || undefined,
           is_clickable: form.is_clickable,
@@ -195,18 +213,12 @@ interface ActionMenuProps {
           starts_at: form.starts_at || undefined,
           ends_at: form.ends_at || undefined,
         };
-        if (form.image) {
-          const formData = new FormData();
-          Object.entries(payload).forEach(([key, value]) => {
-            if (value !== undefined) {
-              formData.append(key, String(value));
-            }
-          });
-          formData.append('image', form.image);
-          await fetchData(`admin/ads/${adId}`, 'PATCH', formData);
-        } else {
-          await fetchData(`admin/ads/${adId}`, 'PATCH', payload);
+
+        if (imageAssetId) {
+          payload.image_asset_id = imageAssetId;
         }
+
+        await fetchData(`admin/ads/${adId}`, 'PATCH', payload);
         onAdEdited();
         onClose();
       } catch {
@@ -310,17 +322,26 @@ function AddAdModal({ open, onClose, onAdAdded }: { open: boolean; onClose: () =
     e.preventDefault();
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('name', form.name);
-      if (form.image) formData.append('image', form.image);
-      formData.append('target_url', form.target_url || '');
-      formData.append('is_clickable', form.is_clickable ? '1' : '0');
-      formData.append('is_active', form.is_active ? '1' : '0');
+      let imageAssetId = null;
+      if (form.image) {
+        imageAssetId = await uploadImage(form.image);
+      }
 
-      formData.append('display_order', String(form.display_order));
-      formData.append('starts_at', form.starts_at || '');
-      formData.append('ends_at', form.ends_at || '');
-      await fetchData('admin/ads', 'POST', formData);
+      const payload: any = {
+        name: form.name,
+        target_url: form.target_url || '',
+        is_clickable: form.is_clickable ? 1 : 0,
+        is_active: form.is_active ? 1 : 0,
+        display_order: form.display_order,
+        starts_at: form.starts_at || '',
+        ends_at: form.ends_at || ''
+      };
+
+      if (imageAssetId) {
+        payload.image_asset_id = imageAssetId;
+      }
+
+      await fetchData('admin/ads', 'POST', payload);
       onAdAdded();
       onClose();
     } catch {
@@ -483,8 +504,10 @@ export default function AdminAdsPage() {
               key: 'starts_at', label: 'Starts At'
             }, {
               key: 'ends_at', label: 'Ends At'
-            }
-            ]}
+            },{
+            key : 'image_url', label: 'Image', render: row => row.image_url ? <img src={row.image_url} alt={row.name} className="h-12 w-12 object-cover rounded" /> : 'No Image'
+            }]
+          }
 
           />
         </div>

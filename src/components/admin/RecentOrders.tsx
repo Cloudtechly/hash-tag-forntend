@@ -50,9 +50,9 @@ const RecentOrders: React.FC = () => {
   };
 
   return (
-    <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-5">
+    <div className="col-span-12 rounded-sm border border-stroke bg-white p-7.5 shadow-default  xl:col-span-5">
       <div className="mb-4 justify-between gap-4 sm:flex">
-        <h4 className="text-xl font-bold text-black dark:text-white">
+        <h4 className="text-xl font-bold text-black ">
           Recent Orders
         </h4>
         <div className="flex items-center gap-2">
@@ -64,38 +64,38 @@ const RecentOrders: React.FC = () => {
       <div className="w-full overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-gray-50 dark:bg-meta-4">
-              <th className="py-4 px-4 font-medium text-black dark:text-white">
+            <tr className="bg-gray-50 ">
+              <th className="py-4 px-4 font-medium text-black ">
                 Products
               </th>
-              <th className="py-4 px-4 font-medium text-black dark:text-white">
+              <th className="py-4 px-4 font-medium text-black ">
                 Category
               </th>
-              <th className="py-4 px-4 font-medium text-black dark:text-white">
+              <th className="py-4 px-4 font-medium text-black ">
                 Price
               </th>
-              <th className="py-4 px-4 font-medium text-black dark:text-white">
+              <th className="py-4 px-4 font-medium text-black ">
                 Status
               </th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order, index) => (
-              <tr key={index} className="border-b border-gray-200 dark:border-strokedark">
+              <tr key={index} className="border-b border-gray-200 ">
                 <td className="py-5 px-4">
                   <div className="flex items-center gap-4">
                     <img src={order.img} alt={order.product} className="h-10 w-10 rounded-md" />
                     <div>
-                      <p className="font-medium text-black dark:text-white">{order.product}</p>
+                      <p className="font-medium text-black ">{order.product}</p>
                       <p className="text-sm text-gray-500">{order.variants} Variants</p>
                     </div>
                   </div>
                 </td>
                 <td className="py-5 px-4">
-                  <p className="text-black dark:text-white">{order.category}</p>
+                  <p className="text-black ">{order.category}</p>
                 </td>
                 <td className="py-5 px-4">
-                  <p className="text-black dark:text-white">{order.price}</p>
+                  <p className="text-black ">{order.price}</p>
                 </td>
                 <td className="py-5 px-4">
                   <p className={`inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium ${getStatusClass(order.status)}`}>

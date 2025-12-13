@@ -1,9 +1,12 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import '../../config/i18n';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { IoIosArrowBack } from 'react-icons/io';
 import fetchData from '../../Api/FetchApi';
 
 export default function OtpPage() {
+  const { t, i18n } = useTranslation();
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,10 +85,10 @@ export default function OtpPage() {
           <button onClick={() => navigate(-1)} className="text-2xl text-gray-800">
             <IoIosArrowBack />
           </button>
-          <h1 className="mt-6 text-3xl font-bold text-gray-900">OTP Verification</h1>
+          <h1 className="mt-6 text-3xl font-bold text-gray-900">{t('otp_title', 'OTP Verification')}</h1>
         </div>
         <p className="mb-8 text-gray-600 leading-relaxed text-center">
-          Please enter the 6-digit code we sent to {phoneNumber}
+          {t('otp_instruction', 'Please enter the 6-digit code we sent to')} {phoneNumber}
         </p>
         <div className="flex justify-center gap-2 mb-6">
           {otp.map((data, index) => (
@@ -109,15 +112,16 @@ export default function OtpPage() {
           onClick={handleVerify}
           disabled={loading || otp.some((digit) => !digit)}
         >
-          {loading ? 'Verifying...' : 'Verify'}
+          {loading ? t('verifying', 'Verifying...') : t('verify', 'Verify')}
         </button>
         <button
           className="mt-4 w-full rounded-2xl bg-[#FADCD3] py-4 text-lg font-semibold text-[#E46A4B] transition-transform active:scale-95"
           onClick={handleResend}
           disabled={loading}
         >
-          Resend
+          {t('resend', 'Resend')}
         </button>
+       
       </div>
     </div>
   );

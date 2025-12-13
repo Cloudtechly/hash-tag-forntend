@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import fetchData from '../../Api/FetchApi';
 import AdminTable from '../../components/admin/AdminTable';
+import { PhotoIcon } from '@heroicons/react/24/outline';
 
 interface Category {
   id: number;
   name: string;
   description?: string;
+  image_url?: string;
 }
 
 interface SpecificationKey {
@@ -14,6 +16,20 @@ interface SpecificationKey {
   type: string;
   category_id: number;
 }
+
+const uploadImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append('files[]', file);
+  formData.append('purpose', 'adimage');
+  
+  const data = await fetchData('admin/assets/uploads', 'POST', formData) as any;
+  
+  if (data?.assets && Array.isArray(data.assets) && data.assets.length > 0) {
+    return data.assets[0].id;
+  }
+  
+  return null;
+};
 
 const AdminCategoriesPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -243,24 +259,31 @@ const AdminCategoriesPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = new FormData();
-    data.append('name', formData.name);
-    if (formData.slug) data.append('slug', formData.slug);
-    if (formData.description) data.append('description', formData.description);
-    if (formData.category_id) data.append('category_id', formData.category_id);
-    if (formData.order_number) data.append('order_number', formData.order_number);
-    data.append('is_active', formData.is_active ? '1' : '0');
-    if (formData.image) {
-      data.append('image', formData.image);
-    }
-
+    
     try {
+      let imageAssetId = null;
+      if (formData.image) {
+        imageAssetId = await uploadImage(formData.image);
+      }
+
+      const payload: any = {
+        name: formData.name,
+        slug: formData.slug || undefined,
+        description: formData.description || undefined,
+        category_id: formData.category_id || undefined,
+        order_number: formData.order_number || undefined,
+        is_active: formData.is_active ? 1 : 0,
+      };
+
+      if (imageAssetId) {
+        payload.image_asset_id = imageAssetId;
+      }
+
       if (editingCategoryId) {
-        data.append('_method', 'PUT');
-        await fetchData(`admin/categories/${editingCategoryId}`, 'PUT', data);
+        await fetchData(`admin/categories/${editingCategoryId}`, 'PUT', payload);
         alert('Category updated successfully');
       } else {
-        await fetchData('admin/categories', 'POST', data);
+        await fetchData('admin/categories', 'POST', payload);
         alert('Category added successfully');
       }
       setAddModalOpen(false);
@@ -330,9 +353,19 @@ const AdminCategoriesPage: React.FC = () => {
             columns={[{
               key: 'id', label: 'ID'
             }, {
+              key: 'image_url', label: 'Image', render: (row: any) => (
+                row.image_url ? (
+                  <img src={row.image_url} alt={row.name} className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                    <PhotoIcon className="h-5 w-5" />
+                  </div>
+                )
+              )
+            }, {
               key: 'name', label: 'Name'
             }, {
-              key: 'description', label: 'Description', render: row => row.description || '-'
+              key: 'description', label: 'Description', render: (row: any) => row.description || '-'
             },{
               key: 'slug', label: 'Slug'
             },

@@ -11,7 +11,7 @@ const AuctionInfoPage = ({ onNext }: { onNext: () => void }) => {
     const fetchTerms = async () => {
       try {
         const res = await fetchData<any>('customer/system-settings?filter[key]=auction_terms_and_condition', 'GET');
-        setTerms(res.value || res.data?.value || '');
+        setTerms(res.value || res.data[0].value || '');
       } catch (err: any) {
         setError(err.message || 'Failed to fetch terms');
       } finally {

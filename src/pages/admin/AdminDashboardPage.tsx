@@ -10,7 +10,7 @@ import fetchData from '../../Api/FetchApi';
 const AdminDashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-boxdark-2 pl-5">
+    <div className="flex h-screen overflow-hidden bg-gray-100  pl-5">
       <AdminSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden xl:ml-[250px]">
         <AdminHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
@@ -27,7 +27,7 @@ const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetchData<any>('admin/system-settings?per_page=100');
+        const res = await fetchData<any>('admin/owner-transactions');
         setStats(res);
       } catch (err: any) {
         setStatsError(err.message || 'Failed to fetch dashboard stats');
@@ -44,10 +44,10 @@ const AdminDashboardPage: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
         {/* Customers Card */}
-        <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+        <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default ">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 ">
             <svg
-              className="fill-primary dark:fill-white"
+              className="fill-primary "
               width="22"
               height="22"
               viewBox="0 0 22 22"
@@ -81,7 +81,7 @@ const AdminDashboardPage: React.FC = () => {
 
           <div className="mt-4 flex items-end justify-between">
             <div>
-              <h4 className="text-title-md font-bold text-black dark:text-white">
+              <h4 className="text-title-md font-bold text-black ">
                 3,782
               </h4>
               <span className="text-sm font-medium text-gray-500">Customers</span>
@@ -107,10 +107,10 @@ const AdminDashboardPage: React.FC = () => {
         </div>
 
         {/* Orders Card */}
-        <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+        <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default ">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 ">
             <svg
-              className="fill-primary dark:fill-white"
+              className="fill-primary "
               width="20"
               height="22"
               viewBox="0 0 20 22"
@@ -126,7 +126,7 @@ const AdminDashboardPage: React.FC = () => {
 
           <div className="mt-4 flex items-end justify-between">
             <div>
-              <h4 className="text-title-md font-bold text-black dark:text-white">
+              <h4 className="text-title-md font-bold text-black ">
                 5,359
               </h4>
               <span className="text-sm font-medium text-gray-500">Orders</span>
@@ -152,10 +152,10 @@ const AdminDashboardPage: React.FC = () => {
         </div>
 
         {/* Monthly Target Card */}
-        <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+        <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default ">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 ">
             <svg
-              className="fill-primary dark:fill-white"
+              className="fill-primary "
               width="24"
               height="24"
               viewBox="0 0 24 24"
@@ -179,7 +179,7 @@ const AdminDashboardPage: React.FC = () => {
 
           <div className="mt-4 flex items-end justify-between">
             <div>
-              <h4 className="text-title-md font-bold text-black dark:text-white">
+              <h4 className="text-title-md font-bold text-black ">
                 $25,372
               </h4>
               <span className="text-sm font-medium text-gray-500">Monthly Target</span>
@@ -205,10 +205,10 @@ const AdminDashboardPage: React.FC = () => {
         </div>
         
         {/* Total Sales Card */}
-        <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
+        <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default ">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 ">
             <svg
-              className="fill-primary dark:fill-white"
+              className="fill-primary "
               width="24"
               height="24"
               viewBox="0 0 24 24"
@@ -228,7 +228,7 @@ const AdminDashboardPage: React.FC = () => {
 
           <div className="mt-4 flex items-end justify-between">
             <div>
-              <h4 className="text-title-md font-bold text-black dark:text-white">
+              <h4 className="text-title-md font-bold text-black ">
                 $468,372
               </h4>
               <span className="text-sm font-medium text-gray-500">Total Sales</span>

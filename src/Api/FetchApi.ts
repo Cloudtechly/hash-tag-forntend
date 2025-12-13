@@ -1,6 +1,6 @@
 
-
-const BASE_URL = 'https://hashtag-api.impaact.io/api/v1/en'; // Replace with your actual base URL
+export const url = 'https://hashtag-api.impaact.io/'
+const BASE_URL = url+'api/v1/en'; // Replace with your actual base URL
 
 
 
@@ -52,11 +52,11 @@ if (typeof window !== 'undefined') {
         response.status === 401 ||
         (error.error && error.error.toLowerCase().includes('token'))
       ) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  window.location.href = '#/login';
       }
 
       console.error('API Error:', error);

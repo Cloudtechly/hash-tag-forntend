@@ -4,7 +4,7 @@ import TransactionHistory from '../components/wallet/TransactionHistory';
 
 const WalletPage = () => {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="bg-white pb-24 max-w-7xl mx-auto min-h-screen ">
       <WalletHeader />
       <Balance  />
       <WalletActions />

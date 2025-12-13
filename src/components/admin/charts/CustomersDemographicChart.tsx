@@ -13,8 +13,8 @@ const markers = [
 
 const CustomersDemographicChart: React.FC = () => {
   return (
-    <div className="col-span-12 rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-7">
-      <h4 className="mb-2 text-xl font-bold text-black dark:text-white">
+    <div className="col-span-12 rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default  xl:col-span-7">
+      <h4 className="mb-2 text-xl font-bold text-black ">
         Customers Demographic
       </h4>
       <span className="text-sm font-medium">Number of customer based on country</span>
@@ -53,7 +53,7 @@ const CustomersDemographicChart: React.FC = () => {
                 <span className="font-medium">USA</span>
             </div>
             <span className="font-medium">2,379 Customers</span>
-            <div className="w-32 bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+            <div className="w-32 bg-gray-200 rounded-full h-2.5 ">
                 <div className="bg-blue-600 h-2.5 rounded-full" style={{width: "79%"}}></div>
             </div>
             <span className="font-medium">79%</span>

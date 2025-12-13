@@ -1,7 +1,10 @@
+
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { IoIosArrowBack } from 'react-icons/io'
 import fetchData from '../Api/FetchApi';
+import { useTranslation } from 'react-i18next';
+import '../config/i18n';
 
 
 
@@ -25,6 +28,7 @@ const InterestChip = ({ category, onSelect, isSelected }: { category: Category, 
 );
 
 export default function Interests() {
+  const { t, i18n } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
@@ -71,8 +75,8 @@ export default function Interests() {
           <Link to="/" className="text-2xl text-gray-800">
             <IoIosArrowBack />
           </Link>
-          <h1 className="mt-6 text-3xl font-bold text-gray-900">Improve your feed</h1>
-          <p className="mt-2 text-lg text-gray-600">Let's find out your taste. What you're into?</p>
+          <h1 className="mt-6 text-3xl font-bold text-gray-900">{t('interests_title', 'Improve your feed')}</h1>
+          <p className="mt-2 text-lg text-gray-600">{t('interests_subtitle', "Let's find out your taste. What you're into?")}</p>
         </div>
 
         <div className="flex flex-wrap gap-3 mb-8 justify-center">
@@ -91,7 +95,7 @@ export default function Interests() {
           onClick={handleContinue}
           disabled={loading || selectedIds.length === 0}
         >
-          {loading ? 'Saving...' : 'Continue'}
+          {loading ? t('saving', 'Saving...') : t('continue', 'Continue')}
         </button>
       </div>
     </div>

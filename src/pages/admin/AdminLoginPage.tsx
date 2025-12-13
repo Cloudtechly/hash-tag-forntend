@@ -23,7 +23,7 @@ const AdminLoginPage: React.FC = () => {
       // You can handle token/user here, e.g. save to localStorage
        localStorage.setItem('token', data.token);
       // Redirect to admin dashboard if needed
-       window.location.href = '/admin';
+       window.location.href = '/#/admin';
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {

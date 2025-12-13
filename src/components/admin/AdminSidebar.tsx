@@ -20,6 +20,10 @@ import { BsFillMegaphoneFill } from 'react-icons/bs';
 import { CiBoxList } from 'react-icons/ci';
 import { MdMoney } from 'react-icons/md';
 import { FaMoneyBill } from 'react-icons/fa6';
+import { FaGlobe } from 'react-icons/fa';
+import { FaCity } from 'react-icons/fa';
+import { FaExchangeAlt } from 'react-icons/fa';
+import { FaGavel } from 'react-icons/fa';
 
 interface AdminSidebarProps {
   sidebarOpen: boolean;
@@ -159,6 +163,26 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ sidebarOpen, setSidebarOpen
           name: 'Currencies',
           icon: <FaMoneyBill/>,
           path: '/admin/currencies',
+        },
+        {
+          name: 'Countries',
+          icon: <FaGlobe />,
+          path: '/admin/countries',
+        },
+        {
+          name: 'Cities',
+          icon: <FaCity />,
+          path: '/admin/cities',
+        },
+        {
+          name: 'Transactions',
+          icon: <FaExchangeAlt />,
+          path: '/admin/owner-transactions',
+        },
+        {
+          name: 'Auctions',
+          icon: <FaGavel />,
+          path: '/admin/auctions',
         },
         
         // {
